@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Interactive India District Map - 141 Pure Vegetarian Restaurant Opportunities</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Leaflet CSS -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
+  />
+
+  <style>
+    #map { height: 90vh; width: 100%; }
+    .legend {
+      background: white;
+      padding: 10px;
+      border-radius: 5px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.2);
+      font-size: 12px;
+      line-height: 18px;
+    }
+    .legend-item {
+      margin: 5px 0;
+    }
+    .legend-color {
+      width: 18px;
+      height: 18px;
+      display: inline-block;
+      margin-right: 8px;
+      border-radius: 50%;
+      border: 2px solid white;
+    }
+    .district-tooltip {
+      background: rgba(0,0,0,0.8) !important;
+      color: white !important;
+      border: none !important;
+      border-radius: 4px !important;
+      font-weight: bold !important;
+    }
+    .tier-info {
+      background: #f0f0f0;
+      padding: 5px;
+      margin: 5px 0;
+      border-radius: 3px;
+      font-size: 11px;
+    }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+
+  <!-- Leaflet JS -->
+  <script
+    src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js">
+  </script>
+  <script>
+    // 1. Initialize the map centered on India
+    const map = L.map('map').setView([22.0, 79.0], 5);
+
+    // 2. Add a basemap layer (OpenStreetMap)
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 18,
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    // 3. Define tier colors and sizes
+    const tierStyles = {
+      "Tier 1": { color: '#FF0000', radius: 10 }, // Red - Metro powerhouses
+      "Tier 2": { color: '#FF6B35', radius: 8 },  // Orange - Traditional centers
+      "Tier 3": { color: '#F7931E', radius: 7 },  // Yellow - Economic corridor
+      "Tier 4": { color: '#2E86AB', radius: 6 },  // Blue - Pilgrimage circuit
+      "Tier 5": { color: '#A23B72', radius: 5 }   // Purple - Emerging opportunities
+    };
+
+    // 4. Complete 141 district data: [latitude, longitude, "District Name", "State", "Tier", jain_population, description]
+    const districts = [
+      // Tier 1: Metro Economic Powerhouses (11 districts)
+      [19.0760, 72.8777, "Mumbai Suburban", "Maharashtra", "Tier 1", 343639, "Largest Jain population; highest metro GDP"],
+      [18.9750, 72.8258, "Mumbai City", "Maharashtra", "Tier 1", 166000, "Dense urban affluence; premium dining market"],
+      [28.7041, 77.1025, "Delhi NCT", "Delhi", "Tier 1", 166231, "Metro GDP ₹1,015B; 39.5% vegetarians; no major veg chains"],
+      [12.9716, 77.5946, "Bengaluru Urban", "Karnataka", "Tier 1", 83090, "IT hub; vegan/veg trend"],
+      [17.3850, 78.4867, "Hyderabad", "Telangana", "Tier 1", 0, "IT services; emerging veg demand"],
+      [13.0827, 80.2707, "Chennai", "Tamil Nadu", "Tier 1", 51708, "Metro GDP ₹756B; established veg clusters"],
+      [28.4744, 77.5040, "Gautam Buddha Nagar", "Uttar Pradesh", "Tier 1", 0, "Highest GDDP; per capita GDP ₹650K"],
+      [28.4595, 77.0266, "Gurgaon", "Haryana", "Tier 1", 0, "69.3% vegetarians; per capita GDP ₹905K"],
+      [17.2403, 78.4294, "Rangareddy", "Telangana", "Tier 1", 0, "Highest per capita GDP in India"],
+      [18.5204, 73.8567, "Pune", "Maharashtra", "Tier 1", 127786, "IT hub; cosmopolitan veg trend"],
+      [23.0225, 72.5714, "Ahmedabad", "Gujarat", "Tier 1", 209287, "Major Jain population; mature veg-food culture"],
+
+      // Tier 2: High-Vegetarian Traditional Centers (33 districts)
+      // Rajasthan (14)
+      [26.9124, 75.7873, "Jaipur", "Rajasthan", "Tier 2", 81079, "74.9% vegetarians; major tourism; business hub"],
+      [24.5854, 73.7125, "Udaipur", "Rajasthan", "Tier 2", 78647, "Heritage lakes; premium tourism market"],
+      [26.2389, 73.0243, "Jodhpur", "Rajasthan", "Tier 2", 30850, "Fort tourism; rising middle class"],
+      [27.5530, 76.6346, "Alwar", "Rajasthan", "Tier 2", 0, "Ancient pilgrimage site"],
+      [26.4499, 74.6399, "Ajmer", "Rajasthan", "Tier 2", 45614, "Business hub"],
+      [25.3477, 74.6379, "Bhilwara", "Rajasthan", "Tier 2", 35149, "Business hub"],
+      [28.0229, 73.3119, "Bikaner", "Rajasthan", "Tier 2", 30850, "Business hub"],
+      [25.7439, 71.3911, "Barmer", "Rajasthan", "Tier 2", 34010, "Business hub"],
+      [24.8794, 74.6239, "Chittorgarh", "Rajasthan", "Tier 2", 25843, "Business hub"],
+      [25.2138, 75.8648, "Kota", "Rajasthan", "Tier 2", 25742, "Business hub"],
+      [26.9020, 77.0206, "Karauli", "Rajasthan", "Tier 2", 0, "Karauli Mahavirji fair"],
+      [24.6042, 72.7347, "Sirohi", "Rajasthan", "Tier 2", 0, "Mount Abu pilgrimage"],
+      [25.7711, 73.3234, "Pali", "Rajasthan", "Tier 2", 0, "Ranakpur Jain circuit"],
+      [23.5454, 74.4481, "Banswara", "Rajasthan", "Tier 2", 0, "Tribal region with veg demand"],
+
+      // Haryana (7)
+      [28.4089, 77.3178, "Faridabad", "Haryana", "Tier 2", 4851, "69.3% vegetarians; NCR business hub"],
+      [29.1492, 75.7217, "Hisar", "Haryana", "Tier 2", 0, "Agrarian + urban mix; rising veg demand"],
+      [29.6857, 76.9905, "Karnal", "Haryana", "Tier 2", 0, "Agricultural hub"],
+      [29.3909, 76.9635, "Panipat", "Haryana", "Tier 2", 0, "Industrial center"],
+      [28.8955, 76.6066, "Rohtak", "Haryana", "Tier 2", 0, "Educational hub"],
+      [29.3158, 76.3159, "Jind", "Haryana", "Tier 2", 0, "Agricultural center"],
+      [30.3752, 76.7821, "Ambala", "Haryana", "Tier 2", 0, "Cantonment town"],
+
+      // Gujarat (6)
+      [22.3072, 73.1812, "Vadodara", "Gujarat", "Tier 2", 0, "Education center; strong veg tradition"],
+      [22.3039, 70.8022, "Rajkot", "Gujarat", "Tier 2", 0, "Industrial growth; high veg preference"],
+      [21.7645, 72.1519, "Bhavnagar", "Gujarat", "Tier 2", 0, "Palitana pilgrimage; Jain hub"],
+      [21.5222, 70.4579, "Junagadh", "Gujarat", "Tier 2", 0, "Girnar temple complex"],
+      [23.0395, 72.5660, "Gandhinagar", "Gujarat", "Tier 2", 0, "State capital"],
+      [23.0732, 70.1328, "Kutch", "Gujarat", "Tier 2", 25312, "Business hub"],
+
+      // Punjab (6)
+      [30.9010, 75.8573, "Ludhiana", "Punjab", "Tier 2", 19592, "66.8% vegetarians; industrial heartland"],
+      [31.6340, 74.8723, "Amritsar", "Punjab", "Tier 2", 0, "Golden Temple pilgrims; high veg demand"],
+      [31.3260, 75.5762, "Jalandhar", "Punjab", "Tier 2", 0, "Suburban growth; F&B diversity"],
+      [30.3398, 76.3869, "Patiala", "Punjab", "Tier 2", 0, "Royal heritage; burgeoning dining scene"],
+      [30.2108, 74.9455, "Bathinda", "Punjab", "Tier 2", 0, "Industrial hub"],
+      [30.7333, 76.7794, "Mohali", "Punjab", "Tier 2", 0, "IT hub near Chandigarh"],
+
+      // Tier 3: Economic Corridor & Pilgrimage (23 districts)
+      // Uttar Pradesh (12)
+      [26.8467, 80.9462, "Lucknow", "Uttar Pradesh", "Tier 3", 0, "47.1% vegetarians; government & tourism hub"],
+      [27.1767, 78.0081, "Agra", "Uttar Pradesh", "Tier 3", 0, "GDDP ₹60.7K Cr; Taj Mahal tourism"],
+      [29.0588, 77.8431, "Meerut", "Uttar Pradesh", "Tier 3", 0, "GDDP ₹54K Cr; per capita GDP ₹143K"],
+      [25.3176, 82.9739, "Varanasi", "Uttar Pradesh", "Tier 3", 0, "Spiritual tourism; strong veg tradition"],
+      [26.4499, 80.3319, "Kanpur Nagar", "Uttar Pradesh", "Tier 3", 0, "GDDP ₹49.8K Cr; industrial center"],
+      [25.4358, 81.8463, "Prayagraj", "Uttar Pradesh", "Tier 3", 0, "GDDP ₹58.2K Cr; Kumbh Mela pilgrimage"],
+      [28.6692, 77.4538, "Ghaziabad", "Uttar Pradesh", "Tier 3", 0, "NCR industrial hub"],
+      [28.3670, 79.4304, "Bareilly", "Uttar Pradesh", "Tier 3", 0, "Educational center"],
+      [28.8386, 78.7733, "Moradabad", "Uttar Pradesh", "Tier 3", 0, "Brass industry hub"],
+      [24.7006, 78.5815, "Lalitpur", "Uttar Pradesh", "Tier 3", 20390, "Deogarh Jain temples"],
+      [27.8974, 78.0880, "Aligarh", "Uttar Pradesh", "Tier 3", 0, "Educational hub"],
+      [27.1592, 77.2833, "Mathura", "Uttar Pradesh", "Tier 3", 0, "Krishna pilgrimage"],
+
+      // Madhya Pradesh (11)
+      [22.7196, 75.8577, "Indore", "Madhya Pradesh", "Tier 3", 71667, "50.6% vegetarians; business/education hub"],
+      [23.2599, 77.4126, "Bhopal", "Madhya Pradesh", "Tier 3", 25950, "Capital with tourism; hospitality growth"],
+      [23.1815, 79.9864, "Jabalpur", "Madhya Pradesh", "Tier 3", 33728, "Hanumantal pilgrimage; limited veg supply"],
+      [23.8388, 78.7378, "Sagar", "Madhya Pradesh", "Tier 3", 62992, "Pateriaji temple; pilgrimage"],
+      [24.9180, 79.5941, "Chhatarpur", "Madhya Pradesh", "Tier 3", 0, "Kundalpur Jain cluster; pilgrimage"],
+      [25.6670, 78.4578, "Datia", "Madhya Pradesh", "Tier 3", 0, "Sonagiri cluster; Digambar Jain moksha site"],
+      [26.2183, 78.1828, "Gwalior", "Madhya Pradesh", "Tier 3", 0, "Siddhachal Caves"],
+      [22.5986, 75.3149, "Dhar", "Madhya Pradesh", "Tier 3", 0, "Mohankheda Tirth"],
+      [23.5251, 77.8081, "Vidisha", "Madhya Pradesh", "Tier 3", 18490, "Pataria Jain temples"],
+      [24.7479, 78.8367, "Tikamgarh", "Madhya Pradesh", "Tier 3", 15569, "Paporaji Temple"],
+      [23.2394, 75.3643, "Ratlam", "Madhya Pradesh", "Tier 3", 29353, "Business hub"],
+
+      // Tier 4: Jain Pilgrimage Circuit (5 districts)
+      [24.4539, 86.1503, "Giridih", "Jharkhand", "Tier 4", 0, "Sammed Shikharji - most sacred Jain site"],
+      [13.3409, 76.6413, "Hassan", "Karnataka", "Tier 4", 0, "Shravanabelagola Bahubali statue"],
+      [13.3409, 74.7421, "Udupi", "Karnataka", "Tier 4", 0, "Udupi/Karkala/Venur Bahubali statues"],
+      [25.0961, 85.3131, "Nalanda", "Bihar", "Tier 4", 0, "Pawapuri & Rajgir sites; Mahavira nirvana"],
+      [17.0569, 79.0193, "Nalgonda", "Telangana", "Tier 4", 0, "Kulpakji temple complex"],
+
+      // Tier 5: Emerging & Non-Veg State Opportunities (69 districts)
+      // Tamil Nadu (9)
+      [11.0168, 76.9558, "Coimbatore", "Tamil Nadu", "Tier 5", 0, "Metro GDP ₹268B; industrial hub"],
+      [9.9252, 78.1198, "Madurai", "Tamil Nadu", "Tier 5", 0, "Pilgrimage; strong local veg cuisine"],
+      [11.6643, 78.1460, "Salem", "Tamil Nadu", "Tier 5", 0, "Industrial center"],
+      [10.7905, 78.7047, "Tiruchirappalli", "Tamil Nadu", "Tier 5", 0, "Educational hub"],
+      [12.9165, 79.1325, "Vellore", "Tamil Nadu", "Tier 5", 0, "Medical tourism"],
+      [11.1085, 77.3411, "Tiruppur", "Tamil Nadu", "Tier 5", 0, "Textile hub"],
+      [12.2958, 76.6394, "Mysuru", "Karnataka", "Tier 5", 0, "Tourism; heritage; veg-friendly"],
+      [15.3173, 75.7139, "Belagavi", "Karnataka", "Tier 5", 178310, "High Jain population"],
+      [15.4589, 75.0078, "Dharwad", "Karnataka", "Tier 5", 29037, "Jain temples; education"],
+
+      // Kerala (9)
+      [9.9312, 76.2673, "Kochi", "Kerala", "Tier 5", 0, "Tourism; cosmopolitan; veg/vegan growth"],
+      [8.5241, 76.9366, "Thiruvananthapuram", "Kerala", "Tier 5", 0, "Capital; tourism; veg/vegan demand"],
+      [10.5276, 76.2144, "Thrissur", "Kerala", "Tier 5", 0, "Cultural center"],
+      [8.8932, 76.6141, "Kollam", "Kerala", "Tier 5", 0, "Coastal tourism"],
+      [11.2588, 75.7804, "Malappuram", "Kerala", "Tier 5", 0, "Educational hub"],
+      [11.2588, 75.7804, "Kozhikode", "Kerala", "Tier 5", 0, "Spice trade center"],
+      [11.8745, 75.3704, "Kannur", "Kerala", "Tier 5", 0, "Tourism hub"],
+      [9.5916, 76.5222, "Kottayam", "Kerala", "Tier 5", 0, "Educational center"],
+      [11.6854, 76.1320, "Wayanad", "Kerala", "Tier 5", 0, "Tourism; eco-travel; veg/vegan demand"],
+
+      // Maharashtra (4)
+      [19.9975, 73.7898, "Nashik", "Maharashtra", "Tier 5", 0, "Pilgrimage + wine tourism; urbanizing"],
+      [19.8762, 75.3433, "Aurangabad", "Maharashtra", "Tier 5", 0, "Ellora Jain caves; heritage tourism"],
+      [21.1458, 79.0882, "Nagpur", "Maharashtra", "Tier 5", 0, "Geographic center; business hub"],
+      [19.2183, 72.9781, "Thane", "Maharashtra", "Tier 5", 172052, "Urban; business center"],
+
+      // West Bengal (5)
+      [22.5726, 88.3639, "Kolkata", "West Bengal", "Tier 5", 0, "Cultural capital; veg clusters exist"],
+      [27.0360, 88.2627, "Darjeeling", "West Bengal", "Tier 5", 0, "Tourism; veg/vegan demand"],
+      [22.4270, 87.3200, "Siliguri", "West Bengal", "Tier 5", 0, "Gateway to Northeast"],
+      [23.5204, 87.3119, "Durgapur", "West Bengal", "Tier 5", 0, "Industrial hub"],
+      [23.6739, 86.9524, "Asansol", "West Bengal", "Tier 5", 0, "Mining center"],
+
+      // Chhattisgarh (3)
+      [21.2514, 81.6296, "Raipur", "Chhattisgarh", "Tier 5", 17137, "Emerging center; no major veg chains"],
+      [22.0797, 82.1391, "Bilaspur", "Chhattisgarh", "Tier 5", 0, "Railway junction"],
+      [20.2960, 85.8245, "Durg", "Chhattisgarh", "Tier 5", 0, "Industrial center"],
+
+      // Bihar (7)
+      [25.5941, 85.1376, "Patna", "Bihar", "Tier 5", 2151, "Capital; urban; pilgrimage/tourism"],
+      [24.7914, 85.0002, "Gaya", "Bihar", "Tier 5", 0, "Buddhist pilgrimage"],
+      [24.9267, 86.2182, "Jamui", "Bihar", "Tier 5", 0, "Lachhuar ancient Jain temple"],
+      [25.2425, 86.9842, "Bhagalpur", "Bihar", "Tier 5", 0, "Silk city"],
+      [25.0961, 85.3131, "Nalanda", "Bihar", "Tier 5", 0, "Ancient university"],
+      [26.1197, 87.4753, "Araria", "Bihar", "Tier 5", 0, "Border district"],
+      [25.7771, 87.4753, "Purnia", "Bihar", "Tier 5", 0, "Commercial center"],
+
+      // Jharkhand (5)
+      [23.3441, 85.3096, "Ranchi", "Jharkhand", "Tier 5", 0, "State capital"],
+      [23.7957, 86.4304, "Dhanbad", "Jharkhand", "Tier 5", 0, "Coal mining hub"],
+      [24.2707, 87.2492, "Dumka", "Jharkhand", "Tier 5", 0, "Tribal region"],
+      [23.7928, 86.1511, "Bokaro", "Jharkhand", "Tier 5", 0, "Steel city"],
+      [23.4559, 84.6811, "Lohardaga", "Jharkhand", "Tier 5", 0, "Tribal district"],
+
+      // Odisha (5)
+      [20.2961, 85.8245, "Bhubaneswar", "Odisha", "Tier 5", 0, "IT growth; temple city"],
+      [19.8135, 85.8312, "Puri", "Odisha", "Tier 5", 0, "Jagannath pilgrimage; veg-only zone"],
+      [20.4625, 85.8828, "Cuttack", "Odisha", "Tier 5", 0, "Commercial center"],
+      [21.5041, 83.9116, "Sambalpur", "Odisha", "Tier 5", 0, "Industrial hub"],
+      [20.2700, 84.7336, "Berhampur", "Odisha", "Tier 5", 0, "Silk city"],
+
+      // Andhra Pradesh & Telangana (6)
+      [17.6868, 83.2185, "Visakhapatnam", "Andhra Pradesh", "Tier 5", 0, "Major port; industrial hub"],
+      [16.5062, 80.6480, "Vijayawada", "Andhra Pradesh", "Tier 5", 0, "Business center; transport hub"],
+      [13.6288, 79.4192, "Tirupati", "Andhra Pradesh", "Tier 5", 0, "Major pilgrimage center"],
+      [18.0037, 79.5322, "Warangal", "Telangana", "Tier 5", 0, "Historical city"],
+      [16.2160, 77.3566, "Kurnool", "Andhra Pradesh", "Tier 5", 0, "Judicial capital"],
+      [14.4426, 78.8242, "Anantapur", "Andhra Pradesh", "Tier 5", 0, "Agricultural hub"],
+
+      // Hill Stations & UTs (10)
+      [31.1048, 77.1734, "Shimla", "Himachal Pradesh", "Tier 5", 0, "Hill station tourism"],
+      [32.2432, 77.1892, "Manali", "Himachal Pradesh", "Tier 5", 0, "Adventure tourism"],
+      [30.3165, 78.0322, "Dehradun", "Uttarakhand", "Tier 5", 0, "Educational hub"],
+      [30.0869, 78.2676, "Rishikesh", "Uttarakhand", "Tier 5", 0, "Yoga capital; spiritual tourism"],
+      [29.9457, 78.1642, "Haridwar", "Uttarakhand", "Tier 5", 0, "Ganga pilgrimage"],
+      [29.3803, 79.4636, "Nainital", "Uttarakhand", "Tier 5", 0, "Lake tourism"],
+      [30.4598, 78.0664, "Mussoorie", "Uttarakhand", "Tier 5", 0, "Queen of hills"],
+      [11.4064, 76.6932, "Ooty", "Tamil Nadu", "Tier 5", 0, "Hill station"],
+      [10.2381, 77.4892, "Kodaikanal", "Tamil Nadu", "Tier 5", 0, "Princess of hill stations"],
+      [30.7333, 76.7794, "Chandigarh", "Chandigarh", "Tier 5", 0, "Planned city; high literacy"],
+
+      // Northeast (8)
+      [26.1445, 91.7362, "Guwahati", "Assam", "Tier 5", 0, "Gateway to Northeast"],
+      [24.6637, 93.9063, "Imphal", "Manipur", "Tier 5", 0, "Cultural center"],
+      [23.8315, 91.2868, "Agartala", "Tripura", "Tier 5", 0, "Border city"],
+      [25.5788, 91.8933, "Shillong", "Meghalaya", "Tier 5", 0, "Scotland of East"],
+      [23.7271, 92.7176, "Aizawl", "Mizoram", "Tier 5", 0, "Hill station"],
+      [27.0844, 93.6053, "Itanagar", "Arunachal Pradesh", "Tier 5", 0, "State capital"],
+      [25.6751, 94.1086, "Kohima", "Nagaland", "Tier 5", 0, "War memorial"],
+      [27.3389, 88.6065, "Gangtok", "Sikkim", "Tier 5", 0, "Buddhist culture"],
+
+      // Goa (1)
+      [15.2993, 74.1240, "Panaji", "Goa", "Tier 5", 1109, "Tourism; vegan/veg café boom"],
+
+      // Others (5)
+      [34.0837, 74.7973, "Srinagar", "Jammu & Kashmir", "Tier 5", 0, "Kashmir tourism"],
+      [32.7266, 74.8570, "Jammu", "Jammu & Kashmir", "Tier 5", 0, "Winter capital"],
+      [34.1526, 77.5771, "Leh", "Ladakh", "Tier 5", 0, "High altitude tourism"],
+      [11.9416, 79.8083, "Puducherry", "Puducherry", "Tier 5", 0, "French heritage"],
+      [28.6139, 77.2090, "New Delhi", "Delhi", "Tier 5", 0, "Government center"]
+    ];
+
+    // 5. Loop through and add circle markers with hover tooltips
+    districts.forEach(([lat, lng, name, state, tier, jainPop, description]) => {
+      const style = tierStyles[tier] || tierStyles["Tier 5"];
+      
+      // Scale radius based on Jain population (minimum 4, maximum 12)
+      let radius = style.radius;
+      if (jainPop > 0) {
+        radius = Math.max(4, Math.min(12, 4 + (jainPop / 50000) * 6));
+      }
+      
+      L.circleMarker([lat, lng], {
+        radius: radius,
+        fillColor: style.color,
+        color: '#FFFFFF',
+        weight: 2,
+        opacity: 1,
+        fillOpacity: 0.8
+      })
+      .bindTooltip(`<strong>${name}</strong><br>${state}<br>${tier}${jainPop > 0 ? `<br>Jain Pop: ${jainPop.toLocaleString()}` : ''}<br><em>${description}</em>`, {
+        permanent: false,
+        direction: 'top',
+        offset: [0, -10],
+        className: 'district-tooltip'
+      })
+      .addTo(map);
+    });
+
+    // 6. Add legend
+    const legend = L.control({position: 'bottomright'});
+    legend.onAdd = function (map) {
+      const div = L.DomUtil.create('div', 'legend');
+      div.innerHTML = '<h4>District Tiers (141 Total)</h4>';
+      
+      Object.keys(tierStyles).forEach(tier => {
+        const color = tierStyles[tier].color;
+        const counts = {
+          "Tier 1": "11 districts",
+          "Tier 2": "33 districts", 
+          "Tier 3": "23 districts",
+          "Tier 4": "5 districts",
+          "Tier 5": "69 districts"
+        };
+        
+        div.innerHTML += 
+          `<div class="legend-item">
+            <span class="legend-color" style="background-color: ${color}"></span>
+            ${tier} (${counts[tier]})
+          </div>`;
+      });
+      
+      div.innerHTML += '<div class="tier-info">Tier 1: Metro powerhouses<br>Tier 2: Traditional veg centers<br>Tier 3: Economic corridors<br>Tier 4: Pilgrimage circuits<br>Tier 5: Emerging opportunities</div>';
+      div.innerHTML += '<br><small>Circle size indicates Jain population</small>';
+      return div;
+    };
+    legend.addTo(map);
+
+    // 7. Add district count display
+    const info = L.control({position: 'topleft'});
+    info.onAdd = function (map) {
+      const div = L.DomUtil.create('div', 'legend');
+      div.innerHTML = '<h3>Pure Vegetarian Restaurant Opportunities</h3><strong>141 Priority Districts Across India</strong><br><small>Based on 46-metric decision science framework</small>';
+      return div;
+    };
+    info.addTo(map);
+  </script>
+</body>
+</html>
